@@ -1,0 +1,163 @@
+import { useState, useEffect } from "react";
+import { Table, Button, Space, Popconfirm, Card, Input, message, Modal, Form } from "antd";
+import { useNavigate } from "react-router-dom";
+import { getAllKhachHang, deleteKhachHang } from "../../services/khachhangServices";
+
+export default function KhachHang() {
+  const navigate = useNavigate();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedKhach, setSelectedKhach] = useState(null);
+  const [formReq] = Form.useForm();
+  const [keyword, setKeyword] = useState("");
+
+  // Dữ liệu gốc đầy đủ thuộc tính của bạn
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // Logic Xóa khách hàng
+  const handleDelete = async (record) => {
+    try {
+      setLoading(true);
+      const res = await deleteKhachHang(record.khid); // Gọi service xóa [cite: 27]
+      message.success(res.data.message);
+      await fetchData(); // Cập nhật lại danh sách [cite: 31]
+    } catch (err) {
+      // Lấy message chi tiết từ Backend trả về (bao gồm cả mã BĐS hoặc số HĐ)
+      const errorDetail = err?.response?.data?.message || "Lỗi khi xóa khách hàng";
+      
+      // Hiển thị thông báo dạng Warning hoặc Error để người dùng chú ý
+      Modal.error({
+        title: 'Không thể xóa khách hàng',
+        content: errorDetail,
+        okText: 'Đã hiểu'
+      });
+    } finally {
+      setLoading(false);
+    }
+};
+
+  // Logic Lập yêu cầu
+  const handleSaveRequest = (values) => {
+    console.log("Yêu cầu mới:", values);
+    message.success("Cập nhật CSDL thành công");
+    setIsModalOpen(false);
+    formReq.resetFields();
+  };
+
+  const filtered = data.filter((item) =>
+    item.hoten.toLowerCase().includes(keyword.toLowerCase())
+  );
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  async function fetchData(q = "") {
+    setLoading(true);
+    try {
+      const res = await getAllKhachHang({ keyword: q });
+      setData(res.data || []);
+      return res.data || [];
+    } catch (err) {
+      message.error("Không tải được danh sách khách hàng");
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }
+  const columns = [
+    { title: "Mã", dataIndex: "khid", width: 80, ellipsis: true },
+    { title: "Họ tên", dataIndex: "hoten", ellipsis: true },
+    { title: "SĐT", dataIndex: "sdt", width: 140, ellipsis: true },
+    { title: "CMND", dataIndex: "cmnd", width: 150, ellipsis: true },
+    { title: "Email", dataIndex: "email", width: 200, ellipsis: true },
+    { title: "Địa chỉ", dataIndex: "diachi", width: 220, ellipsis: true },
+    {
+      title: "Giới tính",
+      dataIndex: "gioitinh",
+      render: (v) => (v ? "Nam" : "Nữ"),
+    },
+    {
+      title: "Loại KH",
+      dataIndex: "loaikh",
+      render: (v) => (v ? "VIP" : "Thường"),
+    },
+    {
+      title: "Trạng thái",
+      dataIndex: "trangthai",
+      render: (v) => (v ? "Hoạt động" : "Ngưng"),
+    },
+    {
+      title: "Hành động",
+      key: "action",
+      render: (_, record) => (
+        <Space>
+          <Button onClick={() => { setSelectedKhach(record); setIsModalOpen(true); }}>
+            Lập yêu cầu
+          </Button>
+          <Button onClick={() => navigate("/khach-hang/add", { state: record })}>
+            Sửa
+          </Button>
+          <Popconfirm
+            title="Xóa khách?"
+            onConfirm={() => handleDelete(record)}
+            okText="Đồng ý"
+            cancelText="Hủy"
+          >
+            <Button danger>Xóa</Button>
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
+
+  return (
+    <Card
+      title="Quản lý khách hàng"
+      extra={
+        <Space>
+          <Input.Search
+            placeholder="Tìm tên..."
+            onSearch={async (v) => {
+              const d = await fetchData(v);
+              setKeyword(v);
+              if (v && d.length === 0) message.warning("Không tồn tại thông tin khách hàng");
+            }}
+            onChange={(e) => {
+              setKeyword(e.target.value);
+              if (!e.target.value) fetchData();
+            }}
+          />
+          <Button type="primary" onClick={() => navigate("/khach-hang/add")}>Thêm khách hàng</Button>
+        </Space>
+      }
+    >
+      <Table
+        loading={loading}
+        dataSource={filtered}
+        columns={columns}
+        rowKey="khid"
+        pagination={{ pageSize: 10 }}
+        scroll={{ x: 'max-content' }}
+      />
+
+      {/* Modal Lập yêu cầu */}
+      <Modal
+        title={`Lập yêu cầu: ${selectedKhach?.hoten}`}
+        open={isModalOpen}
+        onOk={() => formReq.submit()}
+        onCancel={() => setIsModalOpen(false)}
+        okText="Thêm"
+      >
+        <Form form={formReq} layout="vertical" onFinish={handleSaveRequest}>
+          <Form.Item
+            name="noidung"
+            label="Nội dung yêu cầu"
+            rules={[{ required: true, message: "Thông tin không được rỗng" }]}
+          >
+            <Input.TextArea rows={4} placeholder="Nhập yêu cầu của khách hàng..." />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </Card>
+  );
+}

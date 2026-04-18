@@ -57,8 +57,8 @@ export default function KhachHang() {
     {
       title: "Loại KH",
       dataIndex: "loaikh",
-      width: 100,
-      render: (v) => (Number(v) === 1 ? <Tag color="gold">VIP</Tag> : <Tag>Thường</Tag>),
+      width: 150,
+      render: (v) => (Number(v) === 1 ? <Tag color="gold">VIP (Có BĐS)</Tag> : <Tag color="default">Tiềm năng</Tag>),
     },
     {
       title: "Trạng thái",

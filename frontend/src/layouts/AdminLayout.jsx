@@ -43,7 +43,15 @@ export default function AdminLayout() {
   const menuItems = [
     { key: "/", icon: <DashboardOutlined />, label: "Tổng quan" },
     { key: "/nhan-vien", icon: <UserOutlined />, label: "Nhân viên", adminonly: true },
-    { key: "/khach-hang", icon: <UserOutlined />, label: "Khách hàng" },
+    {
+      key: "group-khach-hang",
+      icon: <UserOutlined />,
+      label: "Khách hàng",
+      children: [
+        { key: "/khach-hang", label: "Danh sách" },
+        { key: "/khach-hang/add", icon: <PlusCircleOutlined />, label: "Thêm mới" },
+      ]
+    },
     { 
       key: "group-bds", 
       icon: <HomeOutlined />, 
@@ -62,7 +70,15 @@ export default function AdminLayout() {
         { key: "/tao-ky-gui", icon: <PlusCircleOutlined />, label: "Thêm mới" },
       ]
     },
-    { key: "/hop-dong-dat-coc", icon: <FileTextOutlined />, label: "HĐ đặt cọc" },
+    {
+      key: "group-dat-coc",
+      icon: <FileTextOutlined />,
+      label: "HĐ đặt cọc",
+      children: [
+        { key: "/hop-dong-dat-coc", label: "Danh sách" },
+        { key: "/hop-dong-dat-coc/add", icon: <PlusCircleOutlined />, label: "Thêm mới" },
+      ]
+    },
     { key: "/hop-dong-chuyen-nhuong", icon: <FileTextOutlined />, label: "HĐ chuyển nhượng" },
   ];
 

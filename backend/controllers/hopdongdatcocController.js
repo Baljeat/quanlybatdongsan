@@ -22,7 +22,13 @@ const VN_TZ = "Asia/Ho_Chi_Minh";
 exports.createHopDong = async (req, res) => {
     try {
         const { bdsid, khid, ngaylaphd, ngayhethan, giatri, kgid } = req.body;
-        
+        // --- BỔ SUNG: CHẶN TRÙNG LẶP ---
+        const checkTonTai = await HopDongDatCoc.findOne({ 
+            where: { kgid, tinhtrang: 1 } // Tìm xem đã có HĐ đặt cọc nào đang Hiệu lực cho KG này chưa
+        });
+        if (checkTonTai) {
+            return res.status(400).json({ message: 'Hợp đồng ký gửi này đã có người đặt cọc và đang có hiệu lực!' });
+        }
         // Giữ nguyên cách lấy nvid_auth cũ
         const nvid = req.body.nvid_auth; 
 
@@ -34,6 +40,15 @@ exports.createHopDong = async (req, res) => {
 
         const t = await sequelize.transaction();
         try {
+            // --- RÀNG BUỘC MỚI: 1 HĐ Ký gửi chỉ tạo 1 HĐ Đặt cọc ---
+            const checkDatCocTonTai = await HopDongDatCoc.findOne({ 
+                where: { kgid, tinhtrang: 1 } 
+            });
+            if (checkDatCocTonTai) {
+                await t.rollback();
+                return res.status(400).json({ message: 'Hợp đồng ký gửi này đã được đặt cọc trước đó. Vui lòng chọn hợp đồng khác.' });
+            }
+
             // 2. Kiểm tra tồn tại BĐS (Giữ nguyên)
             const bds = await BatDongSan.findByPk(bdsid);
             if (!bds) {
@@ -201,5 +216,29 @@ exports.cancelHopDong = async (req, res) => {
     } catch (error) {
         await t.rollback();
         res.status(500).json({ error: error.message });
+    }
+};
+
+/**
+ * 4. TỰ ĐỘNG CẬP NHẬT TRẠNG THÁI THEO THỜI HẠN (Cron Job)
+ * Chạy hàm này trong statusUpdater.js để đồng bộ
+ */
+exports.autoUpdateExpiredHDDC = async () => {
+    try {
+        const today = dayjs().tz(VN_TZ).format('YYYY-MM-DD');
+        const [updatedRows] = await HopDongDatCoc.update(
+            { tinhtrang: 2 }, // 2: Trạng thái Hết hạn
+            {
+                where: {
+                    tinhtrang: 1, // Đang hiệu lực
+                    ngayhethan: { [Op.lt]: today } // Ngày hết hạn < hôm nay
+                }
+            }
+        );
+        if (updatedRows > 0) {
+            console.log(`[HD Đặt cọc] Đã tự động cập nhật ${updatedRows} hợp đồng sang Hết hạn.`);
+        }
+    } catch (error) {
+        console.error('[HD Đặt cọc] Lỗi cập nhật trạng thái tự động:', error);
     }
 };

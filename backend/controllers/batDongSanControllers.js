@@ -1,5 +1,6 @@
 const { Op } = require('sequelize');
-const BatDongSan = require('../models/BatDongSan');
+// SỬA LỖI Ở ĐÂY: Đã thêm chữ "Model" vào đúng tên file thực tế
+const BatDongSan = require('../models/BatDongSanModel'); 
 
 exports.getAllBDS = async (req, res) => {
     try {

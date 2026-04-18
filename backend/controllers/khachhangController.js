@@ -59,6 +59,7 @@ exports.getAllKhachHang = async (req, res) => {
         if (keyword?.trim()) {
             const s = `%${keyword.trim()}%`;
             where[Op.or] = [
+                { khid: { [Op.like]: s } },
                 { hoten: { [Op.like]: s } },
                 { cmnd: { [Op.like]: s } },
                 { sdt: { [Op.like]: s } },

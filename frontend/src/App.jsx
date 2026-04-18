@@ -5,9 +5,10 @@ import AdminLayout from "./layouts/AdminLayout";
 // --- 1. IMPORT CÁC TRANG QUẢN LÝ ---
 import QuanLyNhanVien from './pages/QuanLyNhanVien'; 
 import DanhSachBDS from './pages/DanhSachBDS';      
-import KhachHang from "./pages/khachhang/KhachHang"; 
-import AddKhachHang from "./pages/khachhang/AddKhachHang";
-import CreateHopDong from './pages/hopdong/Hopdongdatcoc'; 
+import KhachHang from "./pages/KhachHang/KhachHang"; 
+import AddKhachHang from "./pages/KhachHang/AddKhachHang";
+import CreateHopDong from './pages/HopDongDatCoc/Hopdongdatcoc'; 
+import AddHopdongDatCoc from './pages/HopDongDatCoc/AddHopdongDatCoc';
 
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
@@ -87,6 +88,7 @@ function App() {
             {/* CÁC HỢP ĐỒNG KHÁC */}
             <Route path="hop-dong-chuyen-nhuong" element={<HopDongChuyenNhuong />} />
             <Route path="hop-dong-dat-coc" element={<CreateHopDong />} />
+            <Route path="hop-dong-dat-coc/add" element={<AddHopdongDatCoc />} />
           </Route>
 
           {/* FALLBACK */}

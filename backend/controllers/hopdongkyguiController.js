@@ -54,6 +54,9 @@ const createKyGui = async (req, res) => {
 
     const newKyGui = await KyGui.create(req.body);
 
+    // Tự động cập nhật Khách hàng lên VIP (loaikh: 1) vì đã có hợp đồng ký gửi
+    await KhachHang.update({ loaikh: 1 }, { where: { khid } });
+
     res.status(201).json({ message: 'Tạo hợp đồng ký gửi thành công!', data: newKyGui });
   } catch (error) {
     if (error.code === 'ER_NO_REFERENCED_ROW_2') {

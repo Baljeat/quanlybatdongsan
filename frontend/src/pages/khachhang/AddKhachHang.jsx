@@ -23,6 +23,7 @@ export default function AddKhachHang() {
     } else {
       // Nếu là thêm mới, đảm bảo form được reset về giá trị mặc định (Hoạt động)
       form.resetFields();
+      form.setFieldsValue({ loaikh: 0, trangthai: 1 });
     }
   }, [editingData, form]);
 
@@ -32,6 +33,7 @@ export default function AddKhachHang() {
         const payload = {
           ...values,
           trangthai: values.trangthai !== undefined ? Number(values.trangthai) : 1,
+          loaikh: values.loaikh !== undefined ? Number(values.loaikh) : 0, // Đảm bảo luôn lấy giá trị 0 nếu bị disabled
           ngaysinh: values.ngaysinh ? values.ngaysinh.format("YYYY-MM-DD") : null,
         };
 
@@ -164,9 +166,10 @@ export default function AddKhachHang() {
 
               <Form.Item name="loaikh" label="Loại khách">
                 <Select
+                  disabled={!editingData} // Khóa ô này khi thêm mới (ép buộc là Tiềm năng)
                   options={[
-                    { value: 1, label: "VIP" },
-                    { value: 0, label: "Thường" },
+                    { value: 1, label: "VIP (Đã giao dịch/Có BĐS)" },
+                    { value: 0, label: "Tiềm năng (Chưa có BĐS)" },
                   ]}
                 />
               </Form.Item>
